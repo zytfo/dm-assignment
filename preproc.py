@@ -35,11 +35,11 @@ def calculate_support(features, number_of_transactions):
     return supports
 
 
-def choose_features(number_of_transactions, features, min_support_treshold):
+def choose_features(number_of_transactions, features, min_support_threshold):
     supports = calculate_support(features, number_of_transactions)
     chosen_features = []
     for i in supports:
-        if (supports[i] >= min_support_treshold):
+        if (supports[i] >= min_support_threshold):
             chosen_features.append(i)
     return chosen_features
 
@@ -49,33 +49,36 @@ def build_matrix(features, number_of_transactions):
     counter = 0
     for f in features:
         for i in range(len(features[f])):
-            matrix[features[f][i]][counter] = False
+            matrix[features[f][i]][counter] = True
         counter += 1
     return matrix
-
-def write_arrf(matrix, final_features):
-    file = open('unix.arff', 'w')
-    file.write('@relation unix\n\n')
+        
+def write_csv(matrix, final_features):
+    file = open('unix.csv', 'w')
+    st = ''
     for f in final_features:
-        file.write('@attribute ' + f + ' {True, False}\n')
-    file.write('\n@data\n')
+        st += f + ','
+    st = st[:-1]
+    file.write(st + '\n')
     for row in matrix:
         st = ''
         for i in row:
-            st += str(i) + ','
+            if (i == True):                
+                st += 'T,'
+            else:
+                st += 'F,'
         st = st[:-1]
         st += '\n'
         file.write(st)
-        
-
+    
 def main():
-    min_support_treshold = 0.01
+    min_support_threshold = 0.005
     transactions, features = read_file()
     feature_transactions = {}
     for f in features:
         feature_transactions[f] = list(set(features[f]))
         features[f] = len(set(features[f])) # unique feature in transaction
-    features = choose_features(len(transactions), features, min_support_treshold)
+    features = choose_features(len(transactions), features, min_support_threshold)
     final_features = {}
     for f in features:
         final_features[f] = feature_transactions[f]
@@ -85,15 +88,15 @@ def main():
     for row in matrix:
         flag = False
         for i in row:
-            if (i == False):
+            if (i == True):
                 flag = True
                 break
             else:
                 flag = False
-        if (flag == False):
+        if (flag == True):
             itemset = numpy.vstack([itemset, row])
         else:
             continue
-    write_arrf(itemset, final_features)
-
+    write_csv(itemset, final_features)
+    
 main()
